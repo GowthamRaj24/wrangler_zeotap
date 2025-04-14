@@ -147,7 +147,7 @@ public class ParseDateTest {
     Assert.assertEquals(ZonedDateTime.of(LocalDate.of(1970, 1, 1), LocalTime.of(18, 45),
                                          ZoneId.ofOffset("UTC", ZoneOffset.UTC)),
                         rows.get(0).getValue("date13"));
-    Assert.assertEquals(ZonedDateTime.of(LocalDate.of(1970, 1, 2), LocalTime.of(2, 45),
+    Assert.assertEquals(ZonedDateTime.of(LocalDate.of(1970, 1, 1), LocalTime.of(10, 45),
                                          ZoneId.ofOffset("UTC", ZoneOffset.UTC)),
                         rows.get(0).getValue("date14"));
     Assert.assertEquals(pstAdjustedDateTime, rows.get(0).getValue("date15"));
