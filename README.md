@@ -22,6 +22,11 @@ are manually created.
 
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
+  * **Byte Size and Time Duration Parsers**: Parse values with byte size units (KB, MB, GB) and time duration units (ms, s, m, h, d) directly in your directives. These new parsers enable easy handling and conversion of data size and time values.
+    * `ByteSize` parser automatically detects values like "10KB", "5MB", "2.5GB" and provides methods to convert between units.
+    * `TimeDuration` parser handles values like "100ms", "5s", "2m", "1h" and allows easy conversion to different time units.
+    * New `aggregate-stats` directive that utilizes these parsers to calculate statistics on data size and time columns.
+
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
     * Migrating directives from version 1.0 to version 2.0 [here](wrangler-docs/directive-migration.md)
     * Information about Grammar [here](wrangler-docs/grammar/grammar-info.md)
@@ -83,6 +88,8 @@ These directives are currently available:
 | [Parse XML To JSON](wrangler-docs/directives/parse-xml-to-json.md)              | Parses an XML document into a JSON structure                     |
 | [Parse as Currency](wrangler-docs/directives/parse-as-currency.md)              | Parses a string representation of currency into a number.        |
 | [Parse as Datetime](wrangler-docs/directives/parse-as-datetime.md)              | Parses strings with datetime values to CDAP datetime type        |
+| [Parse as ByteSize](wrangler-docs/directives/parse-as-bytesize.md)              | Parses strings with byte units (KB, MB, GB, etc.) into ByteSize type |
+| [Parse as TimeDuration](wrangler-docs/directives/parse-as-timeduration.md)      | Parses strings with time units (ms, s, m, h, d) into TimeDuration type |
 | **Output Formatters**                                                  |                                                                  |
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
@@ -157,6 +164,7 @@ These directives are currently available:
 | **Transient Aggregators & Setters**                                    |                                                                  |
 | [Increment Variable](wrangler-docs/directives/increment-variable.md)            | Increments a transient variable with a record of processing.     |
 | [Set Variable](wrangler-docs/directives/set-variable.md)                        | Sets a transient variable with a record of processing.     |
+| [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md)                  | Aggregates byte size and time duration values across multiple records. |
 | **Functions**                                                          |                                                                  |
 | [Data Quality](wrangler-docs/functions/dq-functions.md)                         | Data quality check functions. Checks for date, time, etc.        |
 | [Date Manipulations](wrangler-docs/functions/date-functions.md)                 | Functions that can manipulate date                               |
