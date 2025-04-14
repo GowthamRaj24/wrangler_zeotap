@@ -30,6 +30,7 @@
  import io.cdap.wrangler.api.parser.ColumnName;
  import io.cdap.wrangler.api.parser.Text;
  import io.cdap.wrangler.api.parser.TimeDuration;
+ import io.cdap.wrangler.api.parser.Token;
  import io.cdap.wrangler.api.parser.TokenType;
  import io.cdap.wrangler.api.parser.UsageDefinition;
  
@@ -63,8 +64,8 @@
          UsageDefinition.Builder builder = UsageDefinition.builder("AggregateSizeDuration");
          builder.define("sourceSizeColumn", TokenType.COLUMN_NAME);
          builder.define("sourceTimeColumn", TokenType.COLUMN_NAME);
-         builder.define("targetSizeColumn", TokenType.COLUMN_NAME);
-         builder.define("targetTimeColumn", TokenType.COLUMN_NAME);
+         builder.define("targetSizeColumn", TokenType.IDENTIFIER);
+         builder.define("targetTimeColumn", TokenType.IDENTIFIER);
          builder.define("sizeUnit", TokenType.TEXT, true);
          builder.define("timeUnit", TokenType.TEXT, true);
          builder.define("aggregationType", TokenType.TEXT, true);
@@ -76,26 +77,50 @@
          try {
              ColumnName sourceSize = (ColumnName) args.value("sourceSizeColumn");
              ColumnName sourceTime = (ColumnName) args.value("sourceTimeColumn");
-             ColumnName targetSize = (ColumnName) args.value("targetSizeColumn");
-             ColumnName targetTime = (ColumnName) args.value("targetTimeColumn");
- 
+             
+             // Update to handle IDENTIFIER type for target columns
+             Token targetSize = args.value("targetSizeColumn");
+             Token targetTime = args.value("targetTimeColumn");
+
              this.sourceSizeColumn = sourceSize.value();
              this.sourceTimeColumn = sourceTime.value();
-             this.targetSizeColumn = targetSize.value();
-             this.targetTimeColumn = targetTime.value();
- 
+             this.targetSizeColumn = targetSize.value().toString();
+             this.targetTimeColumn = targetTime.value().toString();
+
+             // First try to get named parameters
              if (args.contains("sizeUnit")) {
                  Text unit = (Text) args.value("sizeUnit");
                  this.sizeUnit = unit.value();
              }
+             
              if (args.contains("timeUnit")) {
                  Text tunit = (Text) args.value("timeUnit");
                  this.timeUnit = tunit.value();
              }
+             
              if (args.contains("aggregationType")) {
                  Text aggTypeText = (Text) args.value("aggregationType");
                  this.aggregationType = aggTypeText.value();
              }
+             
+             // Parse from the recipe string for positional parameters
+             // Recipe format: aggregate-size-duration :col1 :col2 target1 target2 unit1 unit2 [aggregation]
+             String recipe = args.source();
+             String[] parts = recipe.split("\\s+");
+             
+             // If we have enough parts and haven't set the units or aggregation from named parameters
+             if (parts.length > 5 && this.sizeUnit == null) {
+                 this.sizeUnit = parts[5];
+             }
+             
+             if (parts.length > 6 && this.timeUnit == null) {
+                 this.timeUnit = parts[6];
+             }
+             
+             if (parts.length > 7 && this.aggregationType == null) {
+                 this.aggregationType = parts[7];
+             }
+             
          } catch (Exception e) {
              throw new DirectiveParseException(
                      "Failed to parse arguments for AggregateSizeDuration directive.", e);
@@ -134,14 +159,15 @@
          long finalTimeMillis = totalTime;
  
          if ("avg".equalsIgnoreCase(aggregationType) && count > 0) {
-             finalSizeBytes = totalSize / count;
-             finalTimeMillis = totalTime / count;
+             // Use double for division to prevent losing precision when calculating averages
+             finalSizeBytes = Math.round((double) totalSize / count);
+             finalTimeMillis = Math.round((double) totalTime / count);
          }
  
          String sizeTargetUnit = (sizeUnit != null && !sizeUnit.isEmpty()) ? sizeUnit : "MB";
          String timeTargetUnit = (timeUnit != null && !timeUnit.isEmpty()) ? timeUnit : "s";
- 
-         double convertedSize;
+         
+         long convertedSize;
          long convertedTime;
          try {
              convertedSize = ByteSize.convertBytesToUnit(finalSizeBytes, sizeTargetUnit);
